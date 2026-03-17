@@ -1,5 +1,5 @@
+# NEED TO BE UPDATED--CODEX GENERATED.
 # **RAGE24: Aging Rat Kidney Single-Cell Multiome Analysis (Publication Code Release)**
-__Gary Wang__
 
 Welcome to this GitHub repository.
 This folder is a publication-oriented code release for the RAGE24 analysis project.
