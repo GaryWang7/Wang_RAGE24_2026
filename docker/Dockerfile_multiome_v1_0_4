@@ -1,0 +1,73 @@
+# May need to install hdf5r separately using root: sudo docker exec -u 0 -it --workdir / <container-id> /bin/bash
+# docker build --tag=garywang7/ragemultiome:1.0.4 -f Dockerfile_multiome_v1_0_4 .
+FROM rocker/tidyverse:4.5.2
+
+# ------------------------------------------------------------------------------
+# System dependencies
+# ------------------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libhdf5-dev \
+    patch \
+    libbz2-dev \
+    libclang-dev \
+    libglpk40 \
+  && rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------------------------------------------
+# R packages: CRAN
+# - Installed first so Bioc/GitHub packages can rely on them
+# ------------------------------------------------------------------------------
+RUN R -e "install.packages(c( \
+    # package management / reproducibility
+    'BiocManager', 'devtools', \
+    'rmarkdown', 'workflowr', \
+    \
+    # general utilities
+    'igraph', 'here', 'future', 'fs', 'data.table', \
+    \
+    # stats & modeling
+    'survival', 'lattice', 'Hmisc', 'DescTools', 'ggpmisc', \
+    \
+    # single-cell / data handling
+    'scCustomize', 'hdf5r', 'harmony', \
+    \
+    # plotting & visualization
+    'ggpubr', 'GGally', 'ggdendro', 'RColorBrewer', 'svglite', \
+    \
+    # enrichment / logging
+    'msigdbr', 'logger', \
+    \
+    # I/O
+    'openxlsx' \
+  ), repos = 'https://cloud.r-project.org')"
+
+# ------------------------------------------------------------------------------
+# R packages: Bioconductor
+# ------------------------------------------------------------------------------
+RUN R -e "BiocManager::install(c( \
+    'Rhtslib', 'Rsamtools', \
+    'GenomeInfoDb', 'GenomicRanges', 'EnsDb.Hsapiens.v86', \
+    'Seurat', 'Signac', 'MAST', \
+    'DESeq2', \
+    'clusterProfiler', 'org.Rn.eg.db', \
+    'SingleCellExperiment', \
+    'biovizBase', 'plyranges', 'BiocParallel', 'scDblFinder', \
+    'glmGamPoi', 'ComplexHeatmap' \
+  ), ask = FALSE, update = FALSE)"
+
+# ------------------------------------------------------------------------------
+# R packages: GitHub
+# ------------------------------------------------------------------------------
+RUN R -e "devtools::install_github(c( \
+    'satijalab/seurat-wrappers', \
+    'chris-mcginnis-ucsf/DoubletFinder', \
+    'cole-trapnell-lab/monocle3', \
+    'immunogenomics/presto', \
+    'LTLA/scuttle', \
+    'jinworks/CellChat', \
+    'kvittingseerup/pfamAnalyzeR' \
+  ))"
+
+
+# docker build --tag=garywang7/ragemultiome:1.0.4 -f Dockerfile_multiome_v1_0_4 .
+# docker push garywang7/ragemultiome:1.0.4
