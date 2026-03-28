@@ -302,6 +302,5 @@ counts_by_bin[, missing_bins] <- 0
 counts_by_bin <- counts_by_bin[, c("barcode", all_bins)]
 
 # Save counts file
-count_file <- here(output_dir, paste0("cell_x_", bin_size_Mb, "_Mb_bins.csv"))
-fwrite(counts_by_bin, file = count_file)
+fwrite(counts_by_bin, file = here(output_dir, paste0("cell_x_", bin_size_Mb, "_Mb_bins.csv")))
 log_success(paste0("Step 1. Finished ", library_id,"! \n"))

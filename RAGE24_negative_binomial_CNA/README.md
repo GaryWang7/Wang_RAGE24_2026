@@ -32,6 +32,7 @@ docker exec -it CNV bash
 # Whole pipeline:
 For step 0-step 2, we run it with shell script to parallelize across libraries. For setp 3, we run it with Docker Rstudio server to combine the individual library results.
 
+## Step 0 - step 2
 ```sh
 # Project/data directories
 project_dir=/home/gary/garyw/RAGE24
@@ -49,7 +50,7 @@ ref_info_tsv="GCF_036323735.1_GRCr8_assembly_info.tsv"
 genome_fa="GCF_036323735.1_GRCr8_mt.fna"
 
 # Bin sizes and whether to assess %N metric for bins
-bin_size_Mb=1
+bin_size_Mb=1 # Can use 5Mb bins for easier chromosome-level CNV calling.
 bin_N_metrics=FALSE
 
 # CNV calling threshold
@@ -91,7 +92,7 @@ parallel $PARALLEL_OPTS --joblog ${tmp_dir}/step1_joblog.txt\
 # Step 2
 # use library_ids from step 1.
 parallel $PARALLEL_OPTS --joblog ${tmp_dir}/step2_joblog.txt\
-    Rscript ${script_dir}/step2_chrom_informed_wavelet_cell_type_agnostic.R \
+    Rscript ${script_dir}/step2_chrom_count.R \
     --library_id {} \
     --out_dir ${out_dir} \
     --bin_size_Mb ${bin_size_Mb} \
@@ -99,3 +100,6 @@ parallel $PARALLEL_OPTS --joblog ${tmp_dir}/step2_joblog.txt\
     --var_cut_off ${var_cut_off} ::: ${library_ids}
 
 ```
+
+## step 3
+Run step3_combine_chrom_count.R in Rstudio server.

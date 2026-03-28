@@ -66,6 +66,33 @@ anno <- lapply(seq_len(nrow(aggcsv)), function(i){
 # save combined annotation file
 write_csv(anno, here(output_dir, "cell_annotation_Feb_02_2026.csv"))
 
+# Bin depth summary
+res.bins <- lapply(seq_len(nrow(aggcsv)), function(i){
+  samp.id <- aggcsv$sample_id[i]
+  lib.id <- aggcsv$library_id[i]
+    
+  data.dir <- here(project_dir, "chasm2", "result", samp.id, lib.id)
+  # Find the newest result file
+  res.file <- dir_ls(data.dir, regexp = paste0("bin_depth_per_cell_", bin_size_Mb, "_Mb_bins.csv")) %>%
+    tibble(file = .) %>%
+    mutate(mtime = file_info(file)$modification_time) %>%
+    slice_max(mtime) %>%
+    pull(file)
+  
+  if(length(res.file)==0){
+    stop("No annotation files matching the pattern 'bin_depth_per_cell_*.csv' found in ", lib.id)
+  }
+  if(length(res.file)>1){
+    stop("Multiple annotation files matching the pattern 'bin_depth_per_cell_*.csv' found in ", lib.id)
+  }
+  dat <- fread(res.file[1])
+  return(dat)
+}) %>% rbindlist()
+
+# save bin read depth summary
+fwrite(res.bins, here(output_dir, "bin_depth_per_cell_Feb_02_2026.csv"))
+write_feather(res.bins, here(output_dir, "bin_depth_per_cell_Feb_02_2026.arrow"))
+
 # negative binomial states summary
 res.nb <- lapply(seq_len(nrow(aggcsv)), function(i){
   samp.id <- aggcsv$sample_id[i]

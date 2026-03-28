@@ -88,8 +88,7 @@ anno <- fread(here(data_dir,paste0("barcode_anno_", library_id,".csv")))
 # Merge annotation with cell x bin matrix. 
 # Note cell x bin matrix uses barcodes from ATAC (without aggregation, ending with "-1")
 read_depth <- read_depth %>% 
-  left_join(anno[,c("barcode_atac","barcode_gex","barcode_atac_aggr",
-                    "celltype","library_id_gex")], 
+  left_join(anno[,c("barcode_atac","barcode_gex","barcode_atac_aggr","library_id_gex")], 
             by = "barcode_atac")
 
 #### 3. Wrangle and filter based on read depth ####
@@ -103,7 +102,7 @@ frag_lib_size <- read_depth %>%
 anno <- left_join(anno, frag_lib_size, by = "barcode_atac_aggr")
 read_depth <- left_join(read_depth, frag_lib_size, by = "barcode_atac_aggr")
 
-# Save updated annotation file
+# Save updated annotation file. The annotation is not filtered yet but we will filter the read count data.
 fwrite(anno, file = here(data_dir,paste0("barcode_anno_", library_id,"_",bin_size_Mb,"_Mb_bins_read_depth_filtered.csv")))
 
 # Plot library size histogram
@@ -122,6 +121,9 @@ bin_depth_per_cell <- read_depth %>%
                       names_to = 'bins', names_transform = list(bins = as.factor),
                       values_to = 'read_depth')
 
+# Save bin-level read depth data.
+fwrite(bin_depth_per_cell, file = here(data_dir, paste0("bin_depth_per_cell_", bin_size_Mb, "_Mb_bins.csv")), row.names = FALSE)
+
 #### 4 Generate chromosome read depth data for negative binomial ####
 log_info("Carrying out negative binomial modeling...")
 # Calculate beta_i_c similar to above
@@ -132,6 +134,7 @@ chrom_depth_per_cell <- bin_depth_per_cell %>%
   group_by(across(matches("barcode|celltype|library|lib_size")), chrom) %>%
   summarise(chrom_read_depth = sum(read_depth)) 
 
-# Save whole chromosome results
+# Save whole chromosome results 
+# The chromosome-level read depth is not affected by the bin size in this version, but it could change the counts if some low-confidence bins (e.g., bins with too many Ns or too repetitive) are filtered out
 fwrite(chrom_depth_per_cell, file=here(data_dir, paste0("chrom_neg_binom_read_depth_",bin_size_Mb,"_Mb_bins.csv"))) 
 log_success("Step 2 finished for ", library_id, "!")
