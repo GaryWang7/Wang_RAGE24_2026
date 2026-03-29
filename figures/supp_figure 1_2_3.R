@@ -44,16 +44,80 @@ method_col <- c(
   "DEFND" = "#D81B60",  # vivid magenta (warm, not orange)
   "Multiome"    = "#1F4E79"   # deep navy (cold)
 )
+
+
+## get metadata
+meta_df <- srat@meta.data %>%
+  tibble::rownames_to_column("barcode_gex_aggr") %>%
+  dplyr::select(nFeature_RNA, nCount_RNA, library_type, barcode_gex_aggr)
+
+# Gene count metrics
+gene_anno <- meta_df %>%
+  group_by(library_type) %>%
+  summarise(
+    mean_val   = mean(nFeature_RNA, na.rm = TRUE),
+    median_val = median(nFeature_RNA, na.rm = TRUE),
+    y_pos      = max(nFeature_RNA, na.rm = TRUE) * 1.15,
+    label = paste0(
+      "mean = ", round(mean_val, 0), "\n",
+      "median = ", round(median_val, 0)
+    ),
+    .groups = "drop"
+  )
+
+# nCount (umi) metrics
+umi_anno <- meta_df %>%
+  group_by(library_type) %>%
+  summarise(
+    mean_val   = mean(nCount_RNA, na.rm = TRUE),
+    median_val = median(nCount_RNA, na.rm = TRUE),
+    y_pos      = max(nCount_RNA, na.rm = TRUE) * 1.15,
+    label = paste0(
+      "mean = ", round(mean_val, 0), "\n",
+      "median = ", round(median_val, 0)
+    ),
+    .groups = "drop"
+  )
+
+
+# Plot nFeature metrics
 p <- VlnPlot_scCustom(srat, features = c("nFeature_RNA"), group.by = "library_type",
                       colors_use = method_col,
                  pt.size = 0.001, raster = TRUE, alpha = 0.05)+
-  scale_y_log10()
+  scale_y_log10() +
+  ggpubr::stat_compare_means(
+    comparisons = list(c("DEFND", "Multiome")),
+    method = "wilcox.test",
+    label = "p.format"
+  )+
+  geom_text(
+    data = gene_anno,
+    aes(x = library_type, y = y_pos, label = label),
+    inherit.aes = FALSE,
+    size = 3.5,
+    lineheight = 0.95
+  )
 ggsave(here(plot.dir, "Gene counts DEFND vs Multiome.pdf"), width = 6, height = 5, 
        plot = p)
+
+# Plot nCount metrics
 p <- VlnPlot_scCustom(srat, features = c("nCount_RNA"), group.by = "library_type",
                       colors_use = method_col, y.max = 20000,
                       pt.size = 0.001, raster = TRUE, alpha = 0.05)+
-  scale_y_log10()
+  scale_y_log10()+
+  scale_y_log10() +
+  ggpubr::stat_compare_means(
+    comparisons = list(c("DEFND", "Multiome")),
+    method = "wilcox.test",
+    label = "p.format"
+  ) +
+  geom_text(
+    data = umi_anno,
+    aes(x = library_type, y = y_pos, label = label),
+    inherit.aes = FALSE,
+    size = 3.5,
+    lineheight = 0.95
+  )
 ggsave(here(plot.dir, "UMI DEFND vs Multiome.pdf"), width = 6, height = 5, 
        plot = p)
 
@@ -93,7 +157,7 @@ ggsave(here(plot.dir,"cell marker dotplot.pdf"), width = 12, height = 9,
        plot = dotp, dpi = 1200)
 
 ### 3. circulating biomarkers (human orthologs) in rat ####
-# Analogs of circulating injured PT biomarkers found in human. This is manually 
+# Analogs of circulating injured PT biomarkers found in human. This is manually curated based on data by Ihara et al. (PMID: 39435665) 
 rat_genes <- c("Tnfrsf11a", "Tnfrsf14", "Eda2r", "Il1r1","Tnfrsf4", "Tnfrsf1a", "Tnfrsf1b",
                "Ltbr", "Fas","Cd27", 
                "Tnfrsf10b", # Ortholog for TNFRSF10A as well

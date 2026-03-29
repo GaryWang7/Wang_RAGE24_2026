@@ -137,3 +137,70 @@ cov_stats_whole <- coverage.sum %>%
   summarise(chrom.cov = sum(coverage)) %>%
   mutate(coverage.pct = chrom.cov/sum(chrom.bin.number$chrom_bins))
 write_csv(cov_stats_whole, here(output_dir, "coverage_whole_genome.csv"))
+
+# check coverage stats
+cov_stats_whole %>%
+  group_by(library_type) %>%
+  summarise(median = median(coverage.pct),
+            mean = mean(coverage.pct))
+
+p.cov.whole.genome <- cov_stats_whole %>%
+  ggplot(aes(x = coverage.pct, color = library_type, fill = library_type, group = library_type))+
+  geom_density(alpha = 0.1)+
+  geom_histogram(aes(y = after_stat(density)), position = "identity",alpha = 0.3, bins= 100, 
+                 linewidth = 0.3)+
+  scale_x_continuous(labels = scales::percent, limits = c(0.45,1))+
+  labs(
+    title = paste0("Coverage of genome: ", bin_size_Mb, " Mb bins with reads"),
+    x = "Coverage (%)"
+  )+
+  scale_color_manual(values = method_col) +
+  scale_fill_manual(values = method_col) +
+  ggpubr::theme_pubr()
+ggsave(here(plot_dir, "coverage", "whole genome coverage.pdf"), plot = p.cov.whole.genome,
+       height = 4, width = 3.5)
+
+## Chromosome X
+cov_stats_chrX <- coverage.sum %>%
+  filter(chromosome == "chrX") %>%
+  group_by(barcode_gex, library_type) %>%
+  summarise(chrom.cov = sum(coverage)) %>%
+  mutate(coverage.pct = chrom.cov/sum(chrom.bin.number[chromosome == "chrX", ]$chrom_bins))
+
+p.cov.chrX <- cov_stats_chrX %>%
+  ggplot(aes(x = coverage.pct, color = library_type, fill = library_type, group = library_type))+
+  geom_density(alpha = 0.1)+
+  geom_histogram(aes(y = after_stat(density)), position = "identity",alpha = 0.3, bins = 79)+
+  scale_color_manual(values = method_col) +
+  scale_fill_manual(values = method_col) +
+  scale_x_continuous(labels = scales::percent)+
+  labs(
+    title = paste0("Coverage of chrX: ", bin_size_Mb, " Mb bins with reads"),
+    x = "Coverage (%)"
+  )+
+  ggpubr::theme_pubr()
+
+ggsave(here(plot_dir, "coverage", "chrX coverage.pdf"), plot = p.cov.chrX,height = 3, width = 6)
+
+## Chromosome Y
+cov_stats_chrY <- coverage.sum %>%
+  filter(chromosome == "chrY") %>%
+  group_by(barcode_gex, library_type) %>%
+  summarise(chrom.cov = sum(coverage)) %>%
+  mutate(coverage.pct = chrom.cov/sum(chrom.bin.number[chromosome == "chrY", ]$chrom_bins))
+
+p.cov.chrY <- cov_stats_chrY %>%
+  ggplot(aes(x = coverage.pct, color = library_type, fill = library_type, group = library_type))+
+  geom_density(alpha = 0.1)+
+  geom_histogram(aes(y = after_stat(density)), position = "identity",alpha = 0.3, bins = 62)+
+  scale_color_manual(values = method_col) +
+  scale_fill_manual(values = method_col) +
+  scale_x_continuous(labels = scales::percent)+
+  labs(
+    title = paste0("Coverage of chrY: ", bin_size_Mb, " Mb bins with reads"),
+    x = "Coverage (%)"
+  )+
+  ggpubr::theme_pubr()
+
+ggsave(here(plot_dir, "coverage", "chrY coverage.pdf"), plot = p.cov.chrY,
+       height = 3, width = 6)
