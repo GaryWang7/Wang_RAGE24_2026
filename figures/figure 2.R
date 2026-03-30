@@ -39,10 +39,10 @@ options(future.globals.maxSize= 100*1024^3) # 100G
 bin_size_Mb <- 1
 
 project_dir <- here("garyw", "RAGE24")
-data_dir <- here(project_dir, "chasm2")
+data_dir <- here(project_dir, "nb_model")
 nb_dir <- here(data_dir,"result_aggr","negative_binomial")
 
-output_dir <- here(project_dir,"chasm2","result_aggr",paste0(bin_size_Mb,"_Mb_bins"))
+output_dir <- here(project_dir,"nb_model","result_aggr",paste0(bin_size_Mb,"_Mb_bins"))
 plot_dir <- here(project_dir,"publication/figures/figure2")
 dir_create(here(plot_dir), recurse = TRUE)
 
@@ -204,3 +204,14 @@ p.cov.chrY <- cov_stats_chrY %>%
 
 ggsave(here(plot_dir, "coverage", "chrY coverage.pdf"), plot = p.cov.chrY,
        height = 3, width = 6)
+
+## combine coverage plots of chromosome X and chrY 
+p.cov.chrX.chrY <- (p.cov.chrX +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        legend.position = "none"))/
+  (p.cov.chrY +
+     theme(legend.position = "none"))
+ggsave(here(plot_dir, "coverage", "chrX chrY coverage.pdf"), plot = p.cov.chrX.chrY,
+       height = 5, width = 6)
+

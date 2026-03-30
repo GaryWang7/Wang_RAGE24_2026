@@ -31,6 +31,10 @@ library(tidyverse)
 
 #### Directories ####
 proj.dir <- here("garyw/RAGE24")
+
+bin_size_Mb <- 1
+output_dir <- here(project_dir,"nb_model","result_aggr",paste0(bin_size_Mb,"_Mb_bins"))
+
 plot.all.dir <- here(proj.dir,"publication/figures")
 plot.dir <- here(plot.all.dir,"supplements")
 dir_create(plot.dir)
