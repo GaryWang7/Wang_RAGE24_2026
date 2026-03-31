@@ -215,3 +215,158 @@ p.cov.chrX.chrY <- (p.cov.chrX +
 ggsave(here(plot_dir, "coverage", "chrX chrY coverage.pdf"), plot = p.cov.chrX.chrY,
        height = 5, width = 6)
 
+#### 2. Coverage plot between PT and PT-injured ####
+res.nb <- read_csv(here(nb_dir, "negative_binomial_combined_Feb_09_2026.csv"))
+anno.nb <- read_csv(here(nb_dir, "cell_annotation_Feb_02_2026.csv"))
+
+# chromosomes
+chroms <- unique(res.nb$chromosome) %>% gtools::mixedsort()
+res.nb$chromosome <- factor(res.nb$chromosome, levels = chroms)
+
+# Select chromosome 2, 5, X, Y , 10, 12, split by PT vs PT-injured
+p <- res.nb %>%
+  left_join(anno.nb[,c("barcode_atac_aggr","celltype")]) %>%
+  filter(celltype %in% c("PT","PT-injured"),
+         chromosome %in% c("chr2","chr5", "chrX","chrY", "chr10", "chr12")) %>%
+  mutate(celltype = factor(celltype, levels = c("PT-injured", "PT"))) %>%
+  group_by(chromosome, celltype) %>%
+  mutate(
+    scale_chrom_log = (chrom_log_norm - chrom_log_mode)/sd(chrom_log_norm)
+  ) %>%
+  ggplot()+
+  geom_density(aes(x = scale_chrom_log, y = after_stat(scaled), fill = celltype, color = celltype), 
+               alpha = 0.5) +
+  facet_wrap(vars(chromosome))+
+  # The color palette is later changed in Inkscape.
+  scale_fill_manual(values = celltype_cols2)+
+  scale_color_manual(values = celltype_cols2)+
+  coord_cartesian(xlim = c(-4,4))+
+  ggpubr::theme_pubr()
+ggsave(here(plot_dir,"chrom read normalized PT vs PTinjured selected chroms.pdf"), width = 6, height = 4, plot = p)
+
+#### 3. PT cells with any CNA in different ages ####
+# Read the files again.
+res.nb <- read_csv(here(nb_dir, "negative_binomial_combined_copynumber_Feb_09_2026.csv"))
+anno.nb <- read_csv(here(nb_dir, "cell_annotation_Feb_02_2026.csv"))
+
+# chromosomes
+chroms <- unique(res.nb$chromosome) %>% gtools::mixedsort()
+res.nb$chromosome <- factor(res.nb$chromosome, levels = chroms)
+
+# Function to  calculate CNA in each chromosome
+calc_CNA <- function(res, padj_thre = 1e-4, cna_scale = "absolute", cna_thre = 1){
+  res.df <- res %>%
+    ungroup() %>%
+    mutate(
+      # Readjust p value
+      chrom_p_val_adj_mode = p.adjust(chrom_p_val_mode, method = "BH"),
+      # Identify cna
+      any_CNA = case_when(
+        chrom_p_val_adj_mode < padj_thre ~ TRUE,
+        .default = FALSE
+      ),
+      any_CNA_type = case_when(
+        any_CNA ==TRUE & cna_size > 0 ~ "Gain",
+        any_CNA ==TRUE & cna_size < 0 ~ "Loss",
+        .default = "None"
+      ),
+      large_CNA = case_when(
+        cna_scale == "absolute" & any_CNA ==TRUE & abs(cna_size) >= cna_thre ~ TRUE, 
+        cna_scale == "relative" & any_CNA ==TRUE & abs(rel_cna_size) >= cna_thre ~ TRUE, 
+        .default = FALSE
+      ),
+      large_CNA_type = case_when(
+        large_CNA==TRUE & cna_size > 0 ~ "Gain",
+        large_CNA==TRUE & cna_size < 0 ~ "Loss",
+        .default = "None"
+      )
+    ) %>%
+    dplyr::select(barcode_atac_aggr, contains("CNA"), chromosome, chrom_category,
+                  chrom_p_val_adj_mode, frag_lib_size) %>%
+    ungroup() %>%
+    distinct() %>%
+    left_join(anno.nb) %>%
+    dplyr::select(barcode_atac_aggr, celltype, rat_id, age_wks,
+                  contains("CNA"), contains("chrom"), library_type,
+                  frag_lib_size)
+}
+
+CNA.res.PT <- res.nb %>%
+  left_join(anno.nb[,c("barcode_atac_aggr", "library_id_gex", "celltype")]) %>%
+  filter(celltype %in% c("PT","PT-injured")) %>%
+  ungroup() %>%
+  calc_CNA(padj_thre = 1e-4, cna_scale = "relative", cna_thre = 0.5)
+
+CNA.per.PT <- CNA.res.PT %>%
+  # Remove rats with abnormal distribution on chr12
+ filter(!rat_id %in% c("J10","E05","N14")) %>%
+  group_by(barcode_atac_aggr, celltype, rat_id, age_wks,
+           library_type, frag_lib_size) %>%
+  summarise(
+    have_large_CNA = as.integer(any(large_CNA==TRUE)),
+    have_CNA = as.integer(any(any_CNA == TRUE)),
+    .groups = "drop"
+  )
+
+CNA.per.PT.prop <- CNA.per.PT %>%
+  group_by(age_wks) %>%
+  summarise(
+    large_CNA_prop = mean(have_large_CNA),
+    any_CNA_prop = mean(have_CNA)
+  )
+
+# Any CNA--Cochran–Armitage trend test of binary outcomes
+# install.packages("DescTools")
+prop_tab <- with(CNA.per.PT, table(age_wks, have_CNA))
+CAT <- DescTools::CochranArmitageTest(prop_tab, alternative = "one.sided")
+CAT.df <- data.frame(unlist(CAT)) %>% tibble::rownames_to_column("rownames")
+write_csv(CAT.df, here(plot_dir,"CNA_prop", "Proportion age PT any CNA test.csv"))
+
+# Any CNA plot
+p <- CNA.per.PT.prop %>%
+  mutate(age_wks = factor(age_wks, levels = c(16,30,56,82)),
+         CNA_pct = any_CNA_prop*100) %>%
+  ggplot(aes(x = age_wks, y = CNA_pct, fill = age_wks)) +
+  geom_col(width = 0.65) +
+  geom_text(
+    aes(label = sprintf("%.2f%%", CNA_pct)), vjust = -0.3, size = 3.5
+  )+
+  annotate("text", x = 0.6, y = 10, hjust = 0,
+           label = paste0(
+             CAT$method, "\n",
+             "p = ", signif(CAT$p.value, 4)
+           ))+
+  xlab("age weeks") +
+  ylab("Percentage (%) ") +
+  ggtitle("Percentage of proximal tubule cells with any CNA")+
+  scale_fill_manual(values = age_col)+
+  #coord_cartesian(ylim = c(5, 8)) + 
+  ggpubr::theme_pubr()
+ggsave(here(plot_dir,"CNA_prop","all PT cells_CNA with age_mode.pdf"), height = 3, width = 2.5, plot = p)
+
+#### 4. CNA in PT vs PT-injured cells ####
+# Use data imported in section 3.
+# Test chi-square for any CNA
+tab <- table(celltype = CNA.per.PT$celltype, CNA = CNA.per.PT$have_CNA)
+test <- chisq.test(tab, correct = FALSE)
+
+# Plot any CNA in PT vs PT-injured
+p <- CNA.per.PT.prop %>%
+  mutate(CNA_pct = any_CNA_prop*100) %>%
+  ggplot(aes(x = celltype, y = CNA_pct, fill = celltype)) +
+  geom_col(width = 0.65) +
+  geom_text(
+    aes(label = sprintf("%.2f%%", CNA_pct)), vjust = -0.3, size = 3.5
+  )+
+  annotate("text", x = 0.6, y = 10, hjust = 0,
+           label = paste0(
+             test$method, "\n",
+             "p = ", signif(test$p.value, 4)
+           ))+
+  xlab("celltype") +
+  ylab("Percentage (%) ") +
+  ggtitle("Percentage of PT vs PT-injured to develop any CNA")+
+  scale_fill_manual(values = celltype_cols2)+
+  #coord_cartesian(ylim = c(5, 8)) + 
+  ggpubr::theme_pubr()
+ggsave(here(plot_dir,"CNA_prop","PT vs PT injured CNA_mode.pdf"), height = 3, width = 2.5, plot = p)

@@ -8,7 +8,6 @@ Visit the Wilsoin Lab website:
 
 # Contents
 - [Data Availability](#data-availability)
-- [Source and Release Locations](#source-and-release-locations)
 - [Environment](#environment)
 - [Analysis Workflow](#analysis-workflow)
 - [Figures](#figures)
@@ -17,7 +16,17 @@ Visit the Wilsoin Lab website:
 
 ---
 ## **Data Availability**
+The raw and processed sequencing data generated in this study have been deposited in the Gene Expression Omnibus (GEO) under the following accession numbers.
 
+- single-cell multiome and DEFND-seq data of aging rat kidney cortex , and corresponding cellranger count matrices and cellranger-atac fragment files can be found at [GSE312213](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312213) [Reviewer token: cfavwmimfjehjcf]
+ 
+- bulk long-read RNA sequencing of aged rat kidney cortex, and corresponding transcript assemblies, transcript and gene count matrices can be found at [GSE312214](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312214) [Reviewer token: yhulkcckrzyljwl]
+
+- bulk RNA sequencing of DCLK1 overexpression in HEK293T cells, and corresponding count matrices and DESeq objects can be found at [GSE312496](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312496) [Reviewer token: ebmtmkwezvefbgj]
+
+- bulk RNA sequencing of rat kidney cortex following DCLK1-IN-1 treatment, and corresponding count matrices and DESeq objects can be found at [GSE313195](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE313195) [Reviewer token: exqnwwekllwzrup]. 
+
+- Previously published bulk RNA-seq data from aged rat kidney cortex were obtained from the Sequence Read Archive (SRA; PRJNA516151).
 
 ---
 ## **Environment**
