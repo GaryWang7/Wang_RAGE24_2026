@@ -1,38 +1,63 @@
 # **Single-Cell Multiomics Reveals Somatic Copy Number Alterations and DCLK1-Driven Inflammatory Signaling in Injured Proximal Tubule Cells**
 
-Welcome to this GitHub repository.
-This folder is a publication-oriented code release for the RAGE24 analysis project.
+This repository contains the analysis code accompanying our study on somatic copy number alterations and DCLK1-associated inflammatory signaling in injured proximal tubule cells during kidney aging.
 
-Visit the Wilsoin Lab website:
-[https://www.parkerwilsonlab.com](https://www.parkerwilsonlab.com)
+This repository is intended to document the workflows used in the manuscript and is not distributed as a general-purpose software package.
 
-# Contents
-- [Data Availability](#data-availability)
-- [Environment](#environment)
-- [Analysis Workflow](#analysis-workflow)
+Lab website: [Parker Wilson Lab](https://www.parkerwilsonlab.com)
+
+---
+
+## Contents
+- [Data availability](#data-availability)
+- [Software requirements](#software-requirements)
+- [Computational environment](#computational-environment)
+- [Analysis workflow](#analysis-workflow)
 - [Figures](#figures)
 - [Citation](#citation)
 - [Contact](#contact)
 
 ---
-## **Data Availability**
-The raw and processed sequencing data generated in this study have been deposited in the Gene Expression Omnibus (GEO) under the following accession numbers.
 
-- single-cell multiome and DEFND-seq data of aging rat kidney cortex , and corresponding cellranger count matrices and cellranger-atac fragment files can be found at [GSE312213](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312213) [Reviewer token: cfavwmimfjehjcf]
- 
-- bulk long-read RNA sequencing of aged rat kidney cortex, and corresponding transcript assemblies, transcript and gene count matrices can be found at [GSE312214](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312214) [Reviewer token: yhulkcckrzyljwl]
+## Data availability
 
-- bulk RNA sequencing of DCLK1 overexpression in HEK293T cells, and corresponding count matrices and DESeq objects can be found at [GSE312496](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312496) [Reviewer token: ebmtmkwezvefbgj]
+The raw and processed sequencing data generated in this study are available through GEO under the following accession numbers: (reviewer tokens are provided in the manuscript or upon request)
 
-- bulk RNA sequencing of rat kidney cortex following DCLK1-IN-1 treatment, and corresponding count matrices and DESeq objects can be found at [GSE313195](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE313195) [Reviewer token: exqnwwekllwzrup]. 
+- **Aging rat kidney cortex single-cell multiome and DEFND-seq**, including corresponding Cell Ranger count matrices and Cell Ranger ATAC fragment files:  
+  [GSE312213](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312213)  
 
-- Previously published bulk RNA-seq data from aged rat kidney cortex were obtained from the Sequence Read Archive (SRA; [PRJNA516151](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA516151)).
+- **Bulk long-read RNA-seq of aged rat kidney cortex**, including transcript assemblies and transcript- and gene-level count matrices:  
+  [GSE312214](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312214)  
+
+- **Bulk RNA-seq of DCLK1 overexpression in HEK293T cells**, including count matrices and DESeq2 objects:  
+  [GSE312496](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE312496)  
+
+- **Bulk RNA-seq of rat kidney cortex following DCLK1-IN-1 treatment**, including count matrices and DESeq2 objects:  
+  [GSE313195](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE313195)  
+
+- **Previously published bulk RNA-seq data from aged rat kidney cortex** were obtained from SRA:  
+  [PRJNA516151](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA516151)
 
 ---
-## **Environment**
-Analysis scripts are written in R and use a containerized workflow in development (see docker run blocks in manuscript scripts).
 
-Common R packages used in manuscript scripts include:
+## Software requirements
+
+The main workflows in this repository were developed using:
+
+- **R >= 4.3**
+- **Python >= 3.8**
+- **Cell Ranger >= 8.0**
+
+Some pipelines were run in containerized environments to improve reproducibility.
+
+---
+
+## Computational environment
+
+Analyses were performed primarily in **R** and **Python** using containerized workflows.
+
+Commonly used R packages in manuscript scripts include:
+
 - `tidyverse`
 - `arrow`
 - `Seurat`
@@ -41,67 +66,166 @@ Common R packages used in manuscript scripts include:
 - `fs`
 - `here`
 
-Currently, we developed two docker containers on [docker hub](https://hub.docker.com/u/garywang7).
-- long read: in /bulk_long_read/docker_images. 
-    `` docker pull garywang7/isoseq:1.0.6 ``
-- multiome analysis: in /docker.
-    `` docker pull garywang7/ragemultiome:1.0.4 ``  
----
-## **Analysis Workflow**
+Docker images used in this project are available on Docker Hub:
 
-### **Single-cell preprocessing and gene expression analysis**
-1. Align and count 10x libraries for gene expression and ATAC data (`RAGE24_cellranger/step1_cellranger_gex_count.sh`, `RAGE24_cellranger/step1_cellranger_atac_count.sh`; PMACS notes in `RAGE24_cellranger/cellranger_PMACS.md`).
-2. Build aggregated gene expression objects and sample-level metadata (`RAGE24_gex_aggr_prep/step1_gex_aggr_prep.R`).
-3. Annotate cell identities and generate analysis-ready objects for downstream expression analyses (`RAGE24_gex_aggr_prep/step2_anno.R`).
+- **Long-read analysis**: `garywang7/isoseq:1.0.6`
+- **Multiome analysis**: `garywang7/ragemultiome:1.0.4`
 
-### **Negative binomial CNA identification**
-1. Prepare CNV sample sheets, barcode mappings, and genome/bin metadata (`RAGE24_negative_binomial_CNA/step0_CNV_prep.R`).
-2. Count fragments for each library across genomic bins (`RAGE24_negative_binomial_CNA/step1_count_frags.R`).
-3. Aggregate bin-level counts to chromosome and chromosome-arm features (`RAGE24_negative_binomial_CNA/step2_chrom_count.R`).
-4. Combine libraries and run negative binomial depth-based CNA modeling (`RAGE24_negative_binomial_CNA/step3_combine_chrom_depth.R`).
-5. Container/runtime notes are documented in `RAGE24_negative_binomial_CNA/README.md`.
-
-### **Bulk long-read analysis (Iso-Seq and IsoQuant)**
-1. Run Iso-Seq preprocessing for Kinnex reads (segment, demultiplex/refine, cluster, align, collapse, and classify) using scripts in `bulk_long_read/isoseq/` (`step1_segment_read.sh` to `step9_classify.sh`).
-2. Run IsoQuant quantification workflows (`bulk_long_read/isoquant/isoquant_step1_bam2fastq.sh`, `bulk_long_read/isoquant/isoquant_step2_runIsoquant.sh`, `bulk_long_read/isoquant/isoquant_step2_runIsoquant_2.sh`).
-3. Continue downstream isoform analyses with `bulk_long_read/isoquant/analysis/step0.Dclk1.sh`.
-4. Full long-read processing notes are in `bulk_long_read/IsoSeq_pipeline.md`.
-
-### **HEK293T DCLK1 overexpression mRNA-seq analysis**
-1. Align and quantify reads for the DCLK1 overexpression-only experiment (`HEK293T_DCLK1_overexpression/HEK293T_DCLK1_oe only/step0_alignment.R`).
-2. Align and quantify reads for the DCLK1 overexpression + DCLK1-IN-1 experiment (`HEK293T_DCLK1_overexpression/HEK293T_DCLK1_oe_DCLK1-IN-1/step0_alignment.R`).
-3. Combine and harmonize differential expression outputs across conditions (`HEK293T_DCLK1_overexpression/step1_combine_DE.R`).
-4. Experiment-specific metadata, QC, and reference notes are in the two HEK293T README files under `HEK293T_DCLK1_overexpression/`.
-
-### **Cell type deconvolution analysis**
-1. Run deconvolution and summarize inferred cell type composition profiles with `RAGE24_celltype_deconvolution/celltype_deconvolution_step1_deconv.R`.
-
-### **Human atlas integration and gene expression analysis**
-1. Preprocess kidney atlas ATAC/multiome fragments and build initial objects (`human_atlas/step1_snapatac2_kidney_prep.md`).
-2. Integrate multimodal data with MultiVI and generate latent-space representations (`human_atlas/step2_multivi.py`).
-3. Call peaks and assemble atlas-wide peak features (`human_atlas/step3_callpeak.py`).
-4. Perform negative binomial-based CNA modeling and merge outputs (`human_atlas/step4_negbinom.md`, `human_atlas/step5_combine.R`, `human_atlas/step6_loy.R`).
-5. Run differential expression and R/Seurat conversion steps (`human_atlas/step7_diffexp.py`, `human_atlas/step8_toseurat.py`, `human_atlas/step9_convert.R`, `human_atlas/step10_deg.R`).
+For additional runtime notes, see the workflow-specific README or script headers where applicable.
 
 ---
-## **Figures**
-Manuscript figure scripts are maintained in:
-`/figures`
 
-Current figure scripts include:
-- `figure1.R`
-- `figure2.R`
-- `figure3.R`
-- `figure4.R`
-- `figure5.R`
-- `figure6.R`
-- `figure7.R`
-- `figure8.R`
-- other supplementary figures.
----
-## **Citation**
-If you use any of the code or workflows in this repository please cite our manuscript.
+## Analysis workflow
+
+### 1. Single-cell preprocessing and gene expression analysis
+
+1. Align and quantify 10x gene expression and ATAC libraries
+
+   * `RAGE24_cellranger/step1_cellranger_gex_count.sh`
+   * `RAGE24_cellranger/step1_cellranger_atac_count.sh`
+
+2. Build aggregated gene expression objects and sample-level metadata
+
+   * `RAGE24_gex_aggr_prep/step1_gex_aggr_prep.R`
+
+3. Annotate cell identities and generate analysis-ready objects
+
+   * `RAGE24_gex_aggr_prep/step2_anno.R`
+
+Supporting notes:
+
+* `RAGE24_cellranger/cellranger_PMACS.md`
 
 ---
-## **Contact**
-For questions and comments regarding the analysis and publication, please contact the corresponding author, Dr. Parker Wilson, at parker.wilson@pennmedicine.upenn.edu.
+
+### 2. Negative binomial CNA analysis
+
+1. Prepare sample sheets, barcode mappings, and genome/bin metadata
+
+   * `RAGE24_negative_binomial_CNA/step0_CNV_prep.R`
+
+2. Count fragments across genomic bins for each library
+
+   * `RAGE24_negative_binomial_CNA/step1_count_frags.R`
+
+3. Aggregate bin-level counts to chromosome and chromosome-arm features
+
+   * `RAGE24_negative_binomial_CNA/step2_chrom_count.R`
+
+4. Combine libraries and run negative binomial CNA modeling
+
+   * `RAGE24_negative_binomial_CNA/step3_combine_chrom_depth.R`
+
+Additional notes:
+
+* `RAGE24_negative_binomial_CNA/README.md`
+
+---
+
+### 3. Bulk long-read analysis
+
+1. Run Iso-Seq preprocessing for Kinnex reads
+
+   * `bulk_long_read/isoseq/step1_segment_read.sh` to `step9_classify.sh`
+
+2. Run IsoQuant quantification workflows
+
+   * `bulk_long_read/isoquant/isoquant_step1_bam2fastq.sh`
+   * `bulk_long_read/isoquant/isoquant_step2_runIsoquant.sh`
+   * `bulk_long_read/isoquant/isoquant_step2_runIsoquant_2.sh`
+
+3. Perform downstream isoform analysis
+
+   * `bulk_long_read/isoquant/analysis/step0.Dclk1.sh`
+
+Additional notes:
+
+* `bulk_long_read/IsoSeq_pipeline.md`
+
+---
+
+### 4. HEK293T DCLK1 overexpression RNA-seq analysis
+
+1. Align and quantify reads for the DCLK1 overexpression experiment
+
+   * `HEK293T_DCLK1_overexpression/HEK293T_DCLK1_oe only/step0_alignment.R`
+
+2. Align and quantify reads for the DCLK1 overexpression + DCLK1-IN-1 experiment
+
+   * `HEK293T_DCLK1_overexpression/HEK293T_DCLK1_oe_DCLK1-IN-1/step0_alignment.R`
+
+3. Combine and harmonize differential expression outputs across conditions
+
+   * `HEK293T_DCLK1_overexpression/step1_combine_DE.R`
+
+Additional experiment-specific notes are provided in the corresponding subdirectories.
+
+---
+
+### 5. Cell type deconvolution
+
+1. Run deconvolution and summarize inferred cell type composition
+
+   * `RAGE24_celltype_deconvolution/celltype_deconvolution_step1_deconv.R`
+
+---
+
+### 6. Human atlas integration and analysis
+
+1. Preprocess kidney atlas ATAC/multiome fragments
+
+   * `human_atlas/step1_snapatac2_kidney_prep.md`
+
+2. Integrate multimodal data with MultiVI
+
+   * `human_atlas/step2_multivi.py`
+
+3. Call peaks and generate atlas-wide peak features
+
+   * `human_atlas/step3_callpeak.py`
+
+4. Perform chromosome-level negative binomial CNA modeling and merge results
+
+   * `human_atlas/step4_negbinom.md`
+   * `human_atlas/step5_combine.R`
+   * `human_atlas/step6_loy.R`
+
+5. Run differential expression and Seurat conversion steps
+
+   * `human_atlas/step7_diffexp.py`
+   * `human_atlas/step8_toseurat.py`
+   * `human_atlas/step9_convert.R`
+   * `human_atlas/step10_deg.R`
+
+---
+
+## Figures
+
+Scripts used to generate manuscript figures are located in:
+
+```text
+figures/
+```
+
+This directory includes scripts for main figures and selected supplementary figures.
+
+---
+
+## Citation
+
+If you use code or workflows from this repository, please cite our manuscript.
+
+**Manuscript title:**
+*Single-Cell Multiomics Reveals Somatic Copy Number Alterations and DCLK1-Driven Inflammatory Signaling in Injured Proximal Tubule Cells*
+
+A DOI or formal citation will be added here when available.
+
+---
+
+## Contact
+
+For questions regarding the analysis or repository, please contact:
+
+**Dr. Parker Wilson**
+`parker.wilson@pennmedicine.upenn.edu`
+
