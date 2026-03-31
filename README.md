@@ -1,8 +1,8 @@
 # **Single-Cell Multiomics Reveals Somatic Copy Number Alterations and DCLK1-Driven Inflammatory Signaling in Injured Proximal Tubule Cells**
 
-This repository contains the analysis code accompanying our study on somatic copy number alterations and DCLK1-associated inflammatory signaling in injured proximal tubule cells during kidney aging.
+This repository contains the analysis code accompanying our study on somatic copy number alterations and DCLK1-associated inflammatory signaling in injured proximal tubule cells during kidney aging. 
 
-This repository is intended to document the workflows used in the manuscript and is not distributed as a general-purpose software package.
+It is intended to document the workflows used in the manuscript and is not distributed as a general-purpose software package.
 
 Lab website: [Parker Wilson Lab](https://www.parkerwilsonlab.com)
 
@@ -77,7 +77,7 @@ For additional runtime notes, see the workflow-specific README or script headers
 
 ## Analysis workflow
 
-### 1. Single-cell preprocessing and gene expression analysis
+### Single-cell preprocessing and gene expression analysis
 
 1. Align and quantify 10x gene expression and ATAC libraries
 
@@ -96,9 +96,7 @@ Supporting notes:
 
 * `RAGE24_cellranger/cellranger_PMACS.md`
 
----
-
-### 2. Negative binomial CNA analysis
+### Negative binomial CNA analysis
 
 1. Prepare sample sheets, barcode mappings, and genome/bin metadata
 
@@ -120,9 +118,8 @@ Additional notes:
 
 * `RAGE24_negative_binomial_CNA/README.md`
 
----
 
-### 3. Bulk long-read analysis
+### Bulk long-read analysis
 
 1. Run Iso-Seq preprocessing for Kinnex reads
 
@@ -142,9 +139,8 @@ Additional notes:
 
 * `bulk_long_read/IsoSeq_pipeline.md`
 
----
 
-### 4. HEK293T DCLK1 overexpression RNA-seq analysis
+### HEK293T DCLK1 overexpression RNA-seq analysis
 
 1. Align and quantify reads for the DCLK1 overexpression experiment
 
@@ -160,17 +156,13 @@ Additional notes:
 
 Additional experiment-specific notes are provided in the corresponding subdirectories.
 
----
-
-### 5. Cell type deconvolution
+### Cell type deconvolution
 
 1. Run deconvolution and summarize inferred cell type composition
 
    * `RAGE24_celltype_deconvolution/celltype_deconvolution_step1_deconv.R`
 
----
-
-### 6. Human atlas integration and analysis
+### Human atlas integration and analysis
 
 1. Preprocess kidney atlas ATAC/multiome fragments
 
