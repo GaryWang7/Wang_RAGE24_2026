@@ -30,7 +30,7 @@
 ##################################################
 compile_results <- function(library_ids, result_dir, data_dir) {
   results.ls <- lapply(library_ids, function(library_id) {
-    fread(here(data_dir, library_id, result_dir, "chasm_all.csv"))
+    fread(here(data_dir, library_id, result_dir, "negbinom_all.csv"))
                       }) 
     names(results.ls) <- library_ids
     results.df <- rbindlist(results.ls, idcol = "library_id") %>% as.data.frame()
@@ -92,16 +92,16 @@ library(ggeffects)
 library(sjPlot) 
 library(emmeans)       
 
-outputdir <- here("scratch","kidney_10k_h5ad_output","chasm_aggregate")
+outputdir <- here("scratch","kidney_10k_h5ad_output","negbinom_aggregate")
 plotdir <- here(outputdir, "plots")
 dir.create(here(plotdir), recursive=TRUE)
 
-library_ids <- list.dirs(here("scratch","kidney_10k_h5ad_output","chasm"), full.names=FALSE, recursive=FALSE)
+library_ids <- list.dirs(here("scratch","kidney_10k_h5ad_output","negbinom"), full.names=FALSE, recursive=FALSE)
 result_dirs = c("cellx_macs3-aggr_peak_chromosome")
 # compile results
 results.df <- compile_results(library_ids, 
                               result_dir = result_dirs,
-                              data_dir = here("scratch","kidney_10k_h5ad_output","chasm"))
+                              data_dir = here("scratch","kidney_10k_h5ad_output","negbinom"))
 
 # estimate copy number stat based on normalized difference
 x <- seq(0, 2000, 5)
@@ -628,16 +628,16 @@ library(data.table)
 library(ggplot2)
 library(openxlsx)
 
-outputdir <- here("scratch","kidney_10k_h5ad_output","chasm_aggregate")
+outputdir <- here("scratch","kidney_10k_h5ad_output","negbinom_aggregate")
 plotdir <- here(outputdir, "plots")
 dir.create(here(plotdir), recursive=TRUE)
 
-library_ids <- list.dirs(here("scratch","kidney_10k_h5ad_output","chasm"), full.names=FALSE, recursive=FALSE)
+library_ids <- list.dirs(here("scratch","kidney_10k_h5ad_output","negbinom"), full.names=FALSE, recursive=FALSE)
 result_dirs = c("cellx_macs3-aggr_peak_chromosome_arm")
 # compile results
 results.df <- compile_results(library_ids, 
                               result_dir = result_dirs,
-                              data_dir = here("scratch","kidney_10k_h5ad_output","chasm"))
+                              data_dir = here("scratch","kidney_10k_h5ad_output","negbinom"))
   
 # join with sex annotation
 meta <- read.xlsx(here("scratch","kidney_10k_h5ad_output","clinical_metadata","clinical_meta.xlsx"))
@@ -826,12 +826,12 @@ dev.off()
 #####################################################################################    
 #####################################################################################
                  
-library_ids <- list.dirs(here("scratch","kidney_10k_h5ad_output","chasm"), full.names=FALSE, recursive=FALSE)
+library_ids <- list.dirs(here("scratch","kidney_10k_h5ad_output","negbinom"), full.names=FALSE, recursive=FALSE)
 result_dirs = c("cellx_macs3-aggr_peak_chromosome")
 # compile results
 results.df <- compile_results(library_ids, 
                               result_dir = result_dirs,
-                              data_dir = here("scratch","kidney_10k_h5ad_output","chasm"))
+                              data_dir = here("scratch","kidney_10k_h5ad_output","negbinom"))
                   
 results.df$celltype <- ifelse(results.df$celltype == "PT_PROM1","TL",results.df$celltype)
 

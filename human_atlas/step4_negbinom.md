@@ -1,4 +1,4 @@
-# CHASM
+# NEGBINOM
 # mount drives
 ```
 sudo mount -t drvfs S: /mnt/s
@@ -8,7 +8,7 @@ sudo mount -t drvfs S: /mnt/s
 ```
 SCRATCH1=/mnt/c/scratch
 github=/mnt/g/github_repository/multivi_kidney
-docker run -d --name chasm \
+docker run -d --name negbinom \
 --workdir $HOME \
 -v $github:$HOME/multivi_kidney \
 -v /mnt/s:$HOME/data \
@@ -38,7 +38,7 @@ library_ids <- unique(anno$library_id)
 lapply(library_ids, function(library_id_sel) {
   anno %>%
     dplyr::filter(library_id %in% library_id_sel) %>%
-    fwrite(here("scratch/kidney_10k_h5ad_output/chasm",library_id_sel,"bcanno.csv"))
+    fwrite(here("scratch/kidney_10k_h5ad_output/negbinom",library_id_sel,"bcanno.csv"))
 })
 
 
@@ -54,7 +54,7 @@ function run_step1_count_frags() {
 	barcode_csv=$4
 	outputdir=$5
 	
-	Rscript multivi_kidney/chasm/step1_count_frags.R $library_id_sel $fragment_file $snap_peaks_csv $barcode_csv $outputdir
+	Rscript multivi_kidney/negbinom/step1_count_frags.R $library_id_sel $fragment_file $snap_peaks_csv $barcode_csv $outputdir
 }
 export -f run_step1_count_frags
 
@@ -64,7 +64,7 @@ function run_step2_aggregate_counts() {
 	feature_count_mat=$3
 	cytoband=$4
 	
-	Rscript multivi_kidney/chasm/step2_aggregate_counts.R $library_id_sel $datadir $feature_count_mat $cytoband
+	Rscript multivi_kidney/negbinom/step2_aggregate_counts.R $library_id_sel $datadir $feature_count_mat $cytoband
 }
 export -f run_step2_aggregate_counts
 
@@ -73,7 +73,7 @@ function run_step3_model_counts() {
 	datadir=$2
 	feature_counts=$3
 	
-	Rscript multivi_kidney/chasm/step3_model_counts.R $library_id $datadir $feature_counts
+	Rscript multivi_kidney/negbinom/step3_model_counts.R $library_id $datadir $feature_counts
 }
 export -f run_step3_model_counts
 
@@ -81,7 +81,7 @@ export -f run_step3_model_counts
 barcode_csv=scratch/adata_mvi_model100/annotated_h5ad/filtered_annotations.csv
 snap_peaks_csv=scratch/kidney_10k_h5ad_output/peaks/peaks.csv
 barcode_csv=scratch/adata_mvi_model100/annotated_h5ad/filtered_annotations.csv
-outputdir=scratch/kidney_10k_h5ad_output/chasm
+outputdir=scratch/kidney_10k_h5ad_output/negbinom
 
 # prepare atac-only jobs
 ls data/cellranger_atac_counts/kidney/version_2.1/*/outs/fragments.tsv.gz > /tmp/fragment_files.txt
@@ -120,5 +120,5 @@ parallel -j3 run_step3_model_counts :::: /tmp/library_ids.txt ::: $outputdir :::
 
 # execute pipeline
 ```
-docker exec -i chasm bash < $github/pipeline_mvi_kidney.sh
+docker exec -i negbinom bash < $github/pipeline_mvi_kidney.sh
 ```

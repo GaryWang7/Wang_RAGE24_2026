@@ -12,10 +12,10 @@ compile_atac_frags <- function(library_ids, data_dir) {
   names(results.ls) <- library_ids
   results.df <- rbindlist(results.ls, idcol = "library_id") %>% as.data.frame()
 }
-library_ids <- list.dirs(here("C:/scratch","kidney_10k_h5ad_output","chasm"), full.names=FALSE, recursive=FALSE)
+library_ids <- list.dirs(here("C:/scratch","kidney_10k_h5ad_output","negbinom"), full.names=FALSE, recursive=FALSE)
 
 df <- compile_atac_frags(library_ids, 
-                         data_dir = here("C:/scratch","kidney_10k_h5ad_output","chasm"))
+                         data_dir = here("C:/scratch","kidney_10k_h5ad_output","negbinom"))
 
 
 df$total_atac_frags <- rowSums((df[,3:ncol(df)]))
