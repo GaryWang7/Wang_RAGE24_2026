@@ -250,7 +250,7 @@ ggsave(here(plot_dir,"chrom read normalized PT vs PTinjured selected chroms.pdf"
 
 #### 3. PT cells with any CNA in different ages ####
 # Read the files again.
-res.nb <- read_csv(here(nb_dir, "negative_binomial_combined_copynumber_Feb_09_2026.csv"))
+res.nb <- read_csv(here(nb_dir, "negative_binomial_combined_Feb_09_2026.csv"))
 anno.nb <- read_csv(here(nb_dir, "cell_annotation_Feb_02_2026.csv"))
 
 # chromosomes
