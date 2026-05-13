@@ -31,7 +31,7 @@ docker exec -it CNV bash
 ```
 
 # Whole pipeline:
-For step 0-step 2, we run it with shell script to parallelize across libraries. For setp 3, we run it with Docker Rstudio server to combine the individual library results.
+For Steps 0–2, we use shell scripts to parallelize processing across libraries. The estimated runtime for all RAGE single-cell data generated in this study is ~6 hours on a 10-core 12th Gen Intel(R) i5-12600K workstation. For Step 3, we use RStudio Server inside Docker container to combine results from individual libraries.
 
 ## Step 0 - step 2
 ```sh
