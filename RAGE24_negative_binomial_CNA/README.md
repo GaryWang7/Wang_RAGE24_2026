@@ -3,6 +3,7 @@ This scripts runs negative binomial model for CNV calling based on DEFND-seq.
 Date: 03/12/2025
 
 # Setup container
+We containerized the workflow in Docker. The docker image is available at https://hub.docker.com/r/garywang7/chasm
 ```bash
 RHOME=/home/rstudio
 docker run -it \
